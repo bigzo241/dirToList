@@ -1,0 +1,39 @@
+.root{
+    -fx-background-color : white;
+}
+
+.card {
+    -fx-border-radius : 5px;
+    -fx-border-color : gray;
+    -fx-border-width : 2px;
+}
+
+.card:hover {
+    -fx-border-color : deepskyblue;
+}
+
+.basicStyle {
+    -fx-font-family : "comic sans ms";
+    -fx-font-weight: bold;
+}
+
+#showFolderPath {
+    -fx-border-color : gray white gray gray;
+    -fx-border-radius : 5px 0 0 5px;
+    -fx-font-size: 15px;
+}
+
+.buttonStyle {
+    -fx-font-size : 20px;
+    -fx-border-radius : 5px;
+    -fx-background-color : deepskyblue;
+    -fx-text-fill : white;
+}
+
+.labelStyle {
+    -fx-font-size : 20px;
+}
+
+.textFieldStyle {
+    -fx-font-size : 15px;
+}
