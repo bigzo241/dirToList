@@ -40,5 +40,10 @@ public class Main extends Application {
 
     public void stop(){
         System.out.println("Methode stop : " + Thread.currentThread().getName());
+        try {
+            Files.deleteIfExists(Paths.get("oldList.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -2,12 +2,11 @@ package sample;
 
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
 public class DirectoryBrowser extends SimpleFileVisitor<Path> {
 
@@ -22,26 +21,28 @@ public class DirectoryBrowser extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-        t++;
+        if (Files.isExecutable(dir) && Files.isReadable(dir)) {
+            t++;
 
-        if (t == 1) {
-            System.out.println("Visite/" + dir.getFileName());
-            n = dir.getNameCount() - 1;
+            if (t == 1) {
+                System.out.println("Visite/" + dir.getFileName());
+                n = dir.getNameCount() - 1;
+                return CONTINUE;
+            }
+
+            System.out.println("Visite/" + dir.subpath(n, dir.getNameCount()) );
+
             return CONTINUE;
+        } else {
+            return SKIP_SUBTREE;
         }
-
-        System.out.println("Visite/" + dir.subpath(n, dir.getNameCount()) );
-
-        return CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-        affOpt.setP(file);
-        try {
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        if (Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) && !Files.isHidden(file)) {
+            affOpt.setP(file);
             affOpt.affich(this.option);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return CONTINUE;
@@ -56,4 +57,8 @@ public class DirectoryBrowser extends SimpleFileVisitor<Path> {
         return CONTINUE;
     }
 
+    @Override
+    public FileVisitResult visitFileFailed(Path file, IOException exc) {
+        return CONTINUE;
+    }
 }

@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -75,6 +76,7 @@ public class Controller implements Initializable {
         this.makeListView();
     }
 
+
     @FXML
     public void openFileChooser(ActionEvent e){
         DirectoryChooser dirChooser = new DirectoryChooser();
@@ -92,6 +94,7 @@ public class Controller implements Initializable {
             System.out.println("Aucun dossier selectionné");
         }
     }
+
 
     @FXML
     public void start() throws IOException {
@@ -129,6 +132,7 @@ public class Controller implements Initializable {
         }
     }
 
+
     public List findAvailableList() {
         System.out.println("user.dir : " + System.getProperty("user.dir"));
         Path userDirPath = Paths.get(System.getProperty("user.dir"));
@@ -147,18 +151,18 @@ public class Controller implements Initializable {
         }
     }
 
+
     public void makeListView() {
         if (this.findAvailableList() == null) {
             Label placeHolder = new Label("Aucune liste disponible");
             listAvailable.setPlaceholder(placeHolder);
         } else {
             if (listAvailable.getItems().size() != 0)
-                listAvailable.getItems().remove(0, listAvailable.getItems().size()-1);
+                listAvailable.getItems().remove(0, listAvailable.getItems().size());
 
             for (Object p : this.findAvailableList()) {
                 Path list = (Path) p;
                 Hyperlink link = new Hyperlink(list.getFileName().toString());
-
                 MenuItem item1 = new MenuItem("Ouvrir le dossier");
                 MenuItem item2 = new MenuItem("Supprimer");
 
@@ -174,10 +178,17 @@ public class Controller implements Initializable {
                 item2.setOnAction(event -> {
                     try {
                         Files.deleteIfExists(list);
-                        this.makeListView();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    this.makeListView();
                 });
 
                 link.setContextMenu(new ContextMenu(item1, item2));
@@ -191,6 +202,8 @@ public class Controller implements Initializable {
                     }
                 });
 
+                link.getStyleClass().add("basicStyle");
+                link.setStyle("-fx-font-size : 15px");
                 listAvailable.getItems().add(link);
             }
         }

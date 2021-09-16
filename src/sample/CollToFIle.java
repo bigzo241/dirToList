@@ -42,8 +42,8 @@ public class CollToFIle {
     public Path toFile() {
         Path pathToNewListe = Paths.get(this.newListName);
         if (root.isEmpty()){
-            System.out.println("Impossible de creer la nouvelle liste triée");
-            System.exit(0);
+            System.out.println("Impossible de creer la nouvelle liste triée. Dossier vide");
+//            System.exit(0);
         }else {
             try (BufferedWriter writter = Files.newBufferedWriter(Paths.get(this.newListName), Charset.defaultCharset(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
                 writter.write(directoryListName.get(0), 0, directoryListName.get(0).length());

@@ -138,7 +138,11 @@
       <Separator orientation="VERTICAL" prefHeight="200.0" />
       <VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="226.0" styleClass="card">
          <children>
-            <Label styleClass="basicStyle" text="Listes disponibles" />
+            <Label text="Listes disponibles">
+               <styleClass>
+                  <String fx:value="labelStyle" />
+                  <String fx:value="basicStyle" />
+               </styleClass></Label>
             <ListView fx:id="listAvailable" VBox.vgrow="ALWAYS" />
          </children>
          <padding>
