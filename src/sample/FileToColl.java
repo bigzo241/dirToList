@@ -10,7 +10,7 @@ import java.util.*;
 public class FileToColl implements Comparator{
 
     private Path file;
-    private Stack stack = new Stack();
+    private Stack<SortedSet> stack = new Stack<>();
     private SortedSet root = new TreeSet(this);
     private List<String> directoryListName = new ArrayList<>();
 

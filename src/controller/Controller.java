@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -101,6 +100,8 @@ public class Controller implements Initializable {
         System.out.println("Start");
         if(this.getDirPath() == null || this.fileName.getText().isEmpty()){
             System.out.println("Aucun chemin specifié ou aucun nom de fichier");
+            Alert alert = ComponentCustomized.getDialogBox(Alert.AlertType.WARNING, "Choisissez un dossier ou entrez un nom pour la liste");
+            alert.show();
         } else {
             ProgressIndicator progress = ComponentCustomized.getProgressControl('c', false);
             Stage transparentStage = StageFactory.getStage('t', 300, 300);
@@ -133,7 +134,7 @@ public class Controller implements Initializable {
     }
 
 
-    public List findAvailableList() {
+    public List<Path> findAvailableList() {
         System.out.println("user.dir : " + System.getProperty("user.dir"));
         Path userDirPath = Paths.get(System.getProperty("user.dir"));
         BrowserRules browserRules = new BrowserRules();
@@ -144,10 +145,11 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
 
-        if (browserRules.getListAvailable().isEmpty()) {
+        if (browserRules.getSortedList().isEmpty()) {
             return null;
         } else {
-            return browserRules.getListAvailable();
+//            System.out.println(browserRules.getSortedList());
+            return browserRules.getSortedList();
         }
     }
 
@@ -160,16 +162,16 @@ public class Controller implements Initializable {
             if (listAvailable.getItems().size() != 0)
                 listAvailable.getItems().remove(0, listAvailable.getItems().size());
 
-            for (Object p : this.findAvailableList()) {
-                Path list = (Path) p;
-                Hyperlink link = new Hyperlink(list.getFileName().toString());
+            for (int i = this.findAvailableList().size() - 1 ; i >= 0 ; i--) {
+                Hyperlink link = new Hyperlink(this.findAvailableList().get(i).getFileName().toString());
                 MenuItem item1 = new MenuItem("Ouvrir le dossier");
                 MenuItem item2 = new MenuItem("Supprimer");
 
+                int finalI = i;
                 item1.setOnAction(event -> {
                     Desktop desktop = Desktop.getDesktop();
                     try {
-                        desktop.open(list.getParent().toFile());
+                        desktop.open(this.findAvailableList().get(finalI).getParent().toFile());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -177,7 +179,7 @@ public class Controller implements Initializable {
 
                 item2.setOnAction(event -> {
                     try {
-                        Files.deleteIfExists(list);
+                        Files.deleteIfExists(this.findAvailableList().get(finalI));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -196,7 +198,7 @@ public class Controller implements Initializable {
                 link.setOnAction(e -> {
                     Desktop desktop = Desktop.getDesktop();
                     try {
-                        desktop.open(list.toFile());
+                        desktop.open(this.findAvailableList().get(finalI).toFile());
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }

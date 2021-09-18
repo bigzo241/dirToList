@@ -1,5 +1,8 @@
 package sample;
 
+import javafx.scene.control.Alert;
+import util.ComponentCustomized;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -43,7 +46,8 @@ public class CollToFIle {
         Path pathToNewListe = Paths.get(this.newListName);
         if (root.isEmpty()){
             System.out.println("Impossible de creer la nouvelle liste triée. Dossier vide");
-//            System.exit(0);
+            Alert alert = ComponentCustomized.getDialogBox(Alert.AlertType.INFORMATION, "Le dossier selectonné est vide");
+            alert.show();
         }else {
             try (BufferedWriter writter = Files.newBufferedWriter(Paths.get(this.newListName), Charset.defaultCharset(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
                 writter.write(directoryListName.get(0), 0, directoryListName.get(0).length());

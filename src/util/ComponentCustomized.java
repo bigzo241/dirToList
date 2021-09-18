@@ -1,5 +1,6 @@
 package util;
 
+import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 
@@ -25,5 +26,9 @@ public class ComponentCustomized {
         } else {
             return null;
         }
+    }
+
+    public static Alert getDialogBox(Alert.AlertType alertType, String info) {
+        return new Alert(alertType, info);
     }
 }

@@ -3,18 +3,20 @@ package util;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
-public class BrowserRules extends SimpleFileVisitor<Path> {
+public class BrowserRules extends SimpleFileVisitor<Path> implements Comparator<Path> {
 
+    private final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.txt");
     private short t = 0;
-    private List<Path> listAvailable = new ArrayList<Path>();
+    private List<Path> sortedList = new ArrayList<>();
 
-    public List<Path> getListAvailable() {
-        return listAvailable;
+
+    public List<Path> getSortedList() {
+        this.sortedList.sort(this);
+        return this.sortedList;
     }
 
 
@@ -32,17 +34,15 @@ public class BrowserRules extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.txt");
         if (matcher.matches(file.getFileName())) {
-            this.listAvailable.add(file);
+            sortedList.add(file);
         }
         return CONTINUE;
     }
 
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-//        System.out.println("Fin");
+    public FileVisitResult visitFileFailed(Path file, IOException exc) {
         return CONTINUE;
     }
 
@@ -51,5 +51,18 @@ public class BrowserRules extends SimpleFileVisitor<Path> {
     public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
         System.out.println("Fin");
         return CONTINUE;
+    }
+
+    @Override
+    public int compare(Path o1, Path o2) {
+        int n = 4;
+
+        try {
+            n = Files.getLastModifiedTime(o1).compareTo(Files.getLastModifiedTime(o2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return n;
     }
 }
