@@ -3,19 +3,18 @@ package controller;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
-import sample.CollToFIle;
-import sample.DirToFile;
-import sample.FileToColl;
 import util.BrowserRules;
 import util.ComponentCustomized;
-import util.StageFactory;
+import util.ServiceLoader;
 
 import java.awt.*;
 import java.io.File;
@@ -24,15 +23,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.SortedSet;
 
 public class Controller implements Initializable {
 
     private Path dirPath;
+    private int t = 0;
+    private ServiceLoader serviceLoader;
 
     @FXML
     private RadioButton trieNom;
@@ -53,6 +51,13 @@ public class Controller implements Initializable {
     @FXML
     private CheckBox cbDate;
 
+    private Button cancel = new Button("Annuler");
+
+    @FXML
+    private StackPane stackPane;
+    @FXML
+    private Button btnstart;
+
 
     // getters et setters
     public Path getDirPath() {
@@ -70,6 +75,10 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        this.cancel.setId("btnCancel");
+        this.cancel.setStyle("-fx-opacity : 1; -fx-background : black;");
+        this.cancel.setOnAction(e -> serviceLoader.cancel());
+
         ToggleGroup group = new ToggleGroup();
         group.getToggles().addAll(trieDate, trieNom, trieTaille);
         this.makeListView();
@@ -103,31 +112,46 @@ public class Controller implements Initializable {
             Alert alert = ComponentCustomized.getDialogBox(Alert.AlertType.WARNING, "Choisissez un dossier ou entrez un nom pour la liste");
             alert.show();
         } else {
-            ProgressIndicator progress = ComponentCustomized.getProgressControl('c', false);
-            Stage transparentStage = StageFactory.getStage('t', 300, 300);
-            AnchorPane root = (AnchorPane) transparentStage.getScene().getRoot();
-            root.getChildren().add(progress);
-            transparentStage.show();
+            this.showLoader();
 
-            Instant debut = Instant.now();
+            if (t == 0) {
+                ServiceLoader.setDir(this.dirPath);
+                ServiceLoader.setListName(this.fileName.getText());
+                ServiceLoader.setSize(cbSize.isSelected());
+                ServiceLoader.setDate(cbDate.isSelected());
+                serviceLoader = ServiceLoader.getService();
 
-            DirToFile dirToFile = new DirToFile(this.dirPath, cbSize.isSelected(), cbDate.isSelected());
-            Path listFile = dirToFile.toFile();
+                serviceLoader.start();
+            } else {
+                ServiceLoader.setDir(this.dirPath);
+                ServiceLoader.setListName(this.fileName.getText());
+                ServiceLoader.setSize(cbSize.isSelected());
+                ServiceLoader.setDate(cbDate.isSelected());
 
-            FileToColl fileToColl = new FileToColl(listFile);
-            SortedSet itemsColl = fileToColl.toColl();
+                serviceLoader.restart();
+            }
+            t++;
+//            Instant debut = Instant.now();
+//
+//            DirToFile dirToFile = new DirToFile(this.dirPath, cbSize.isSelected(), cbDate.isSelected());
+//            Path listFile = dirToFile.toFile();
+//
+//            FileToColl fileToColl = new FileToColl(listFile);
+//            SortedSet itemsColl = fileToColl.toColl();
+//
+//            CollToFIle collToFIle = new CollToFIle(this.fileName.getText() + ".txt", itemsColl, fileToColl.getDirectoryListName());
+//            collToFIle.toFile();
+//
+//            System.out.println("Suppression du fichier oldList.txt");
+//            Files.deleteIfExists(Paths.get("oldList.txt"));
+//
+//            Instant fin = Instant.now();
+//            Duration duree = Duration.between(debut, fin);
+//            System.out.println(" Le traitement a duré : " + duree.getSeconds() + " seconde(s)");
 
-            CollToFIle collToFIle = new CollToFIle(this.fileName.getText() + ".txt", itemsColl, fileToColl.getDirectoryListName());
-            collToFIle.toFile();
 
-            System.out.println("Suppression du fichier oldList.txt");
-            Files.deleteIfExists(Paths.get("oldList.txt"));
-
-            Instant fin = Instant.now();
-            Duration duree = Duration.between(debut, fin);
-            System.out.println(" Le traitement a duré : " + duree.getSeconds() + " seconde(s)");
-
-            transparentStage.close();
+            this.stackPane.getChildren().remove(1);
+            System.out.println("Loader fin");
 
             this.makeListView();
         }
@@ -209,5 +233,19 @@ public class Controller implements Initializable {
                 listAvailable.getItems().add(link);
             }
         }
+    }
+
+    public void showLoader() {
+        System.out.println("Loader");
+
+        ProgressIndicator progressInd = new ProgressIndicator();
+
+        VBox vBox = new VBox(50);
+        vBox.setId("forwardContener");
+        vBox.setAlignment(Pos.CENTER);
+
+        vBox.getChildren().addAll(progressInd, this.cancel);
+
+        this.stackPane.getChildren().add(vBox);
     }
 }

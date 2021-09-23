@@ -37,3 +37,20 @@
 .textFieldStyle {
     -fx-font-size : 15px;
 }
+
+#forwardContener {
+    -fx-background-color : black;
+    -fx-opacity : 0.4;
+}
+
+
+#btnCancel {
+    -fx-font-weight: bold;
+    -fx-background-color : red;
+    -fx-text-fill : white;
+    -fx-font-size : 17px;
+}
+
+.progress-indicator:indeterminate {
+    -fx-progress-color : deepskyblue;
+}
