@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -13,7 +14,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import util.BrowserRules;
 import util.ComponentCustomized;
-import util.TacheLoaderClone;
+import util.RunnableDirToFile;
 
 import java.awt.*;
 import java.io.File;
@@ -30,7 +31,7 @@ import java.util.concurrent.Executors;
 public class Controller implements Initializable {
 
     private Path dirPath;
-    private TacheLoaderClone tache;
+    private RunnableDirToFile tache;
 
     @FXML
     private RadioButton trieNom;
@@ -73,6 +74,7 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        listAvailable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         this.cancel.setId("btnCancel");
         this.cancel.setStyle("-fx-opacity : 1; -fx-background : black;");
         this.cancel.setOnAction(e -> {
@@ -116,7 +118,7 @@ public class Controller implements Initializable {
 
             this.showLoader();
 
-            tache = new TacheLoaderClone();
+            tache = new RunnableDirToFile();
             tache.setDir(this.dirPath);
             tache.setListName(this.fileName.getText());
             tache.setSize(cbSize.isSelected());
@@ -161,36 +163,13 @@ public class Controller implements Initializable {
             if (listAvailable.getItems().size() != 0)
                 listAvailable.getItems().remove(0, listAvailable.getItems().size());
 
+            MenuItem item1 = new MenuItem("Ouvrir le dossier");
+            MenuItem item2 = new MenuItem("Supprimer");
+
             for (int i = this.findAvailableList().size() - 1 ; i >= 0 ; i--) {
                 Hyperlink link = new Hyperlink(this.findAvailableList().get(i).getFileName().toString());
-                MenuItem item1 = new MenuItem("Ouvrir le dossier");
-                MenuItem item2 = new MenuItem("Supprimer");
 
                 int finalI = i;
-                item1.setOnAction(event -> {
-                    Desktop desktop = Desktop.getDesktop();
-                    try {
-                        desktop.open(this.findAvailableList().get(finalI).getParent().toFile());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-                item2.setOnAction(event -> {
-                    try {
-                        Files.deleteIfExists(this.findAvailableList().get(finalI));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    this.makeListView();
-                });
 
                 link.setContextMenu(new ContextMenu(item1, item2));
 
@@ -207,8 +186,44 @@ public class Controller implements Initializable {
                 link.setStyle("-fx-font-size : 15px");
                 listAvailable.getItems().add(link);
             }
+
+
+            listAvailable.setOnMouseClicked(mouseEvent -> {
+                ObservableList<Hyperlink> selectedItems = this.listAvailable.getSelectionModel().getSelectedItems();
+
+                if (!selectedItems.isEmpty()) {
+                    this.listAvailable.setContextMenu(new ContextMenu(item1, item2));
+                    item1.setOnAction(e -> {
+                        Desktop desktop = Desktop.getDesktop();
+                        Path p = Paths.get(selectedItems.get(0).getText());
+                        try {
+                            desktop.open(p.toAbsolutePath().getParent().toFile());
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                    });
+
+                    item2.setOnAction(e -> {
+                        for (Hyperlink item : selectedItems) {
+                            try {
+                                Files.deleteIfExists(Paths.get(item.getText()));
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException interruptedException) {
+                                interruptedException.printStackTrace();
+                            }
+                        }
+                        this.makeListView();
+                    });
+                }
+            });
         }
     }
+
 
     public void showLoader() {
         System.out.println("Loader");

@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.SortedSet;
 
-public class TacheLoaderClone extends Task<Void> {
+public class RunnableDirToFile extends Task<Void> {
 
     private Path dir;
     private String listName;
@@ -21,11 +21,11 @@ public class TacheLoaderClone extends Task<Void> {
     private Boolean date;
 
     // constructeurs
-    public TacheLoaderClone() {
+    public RunnableDirToFile() {
 
     }
 
-    public TacheLoaderClone(Path dir, String listName, Boolean size, Boolean date) {
+    public RunnableDirToFile(Path dir, String listName, Boolean size, Boolean date) {
         this.dir = dir;
         this.listName = listName;
         this.size = size;
