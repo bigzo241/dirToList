@@ -48,7 +48,7 @@ public class DirToFile {
      * @throws IOException gestion des erreurs
      */
     public Path toFile() throws IOException {
-        System.out.println("\n Parcours d'un repertoire ");
+        System.out.println("\n Parcours du repertoire : " + this.dir.getFileName());
         Path liste = Paths.get("oldList.txt");
 
         OutputStream outstream = Files.newOutputStream(liste, StandardOpenOption.CREATE, StandardOpenOption.WRITE);

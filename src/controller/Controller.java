@@ -1,6 +1,5 @@
 package controller;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -14,7 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import util.BrowserRules;
 import util.ComponentCustomized;
-import util.ServiceLoader;
+import util.TacheLoaderClone;
 
 import java.awt.*;
 import java.io.File;
@@ -25,12 +24,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Controller implements Initializable {
 
     private Path dirPath;
-    private int t = 0;
-    private ServiceLoader serviceLoader;
+    private TacheLoaderClone tache;
 
     @FXML
     private RadioButton trieNom;
@@ -51,12 +51,10 @@ public class Controller implements Initializable {
     @FXML
     private CheckBox cbDate;
 
-    private Button cancel = new Button("Annuler");
+    private final Button cancel = new Button("Annuler");
 
     @FXML
     private StackPane stackPane;
-    @FXML
-    private Button btnstart;
 
 
     // getters et setters
@@ -77,7 +75,10 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         this.cancel.setId("btnCancel");
         this.cancel.setStyle("-fx-opacity : 1; -fx-background : black;");
-        this.cancel.setOnAction(e -> serviceLoader.cancel());
+        this.cancel.setOnAction(e -> {
+            tache.cancel();
+            this.stackPane.getChildren().remove(1);
+        });
 
         ToggleGroup group = new ToggleGroup();
         group.getToggles().addAll(trieDate, trieNom, trieTaille);
@@ -86,7 +87,7 @@ public class Controller implements Initializable {
 
 
     @FXML
-    public void openFileChooser(ActionEvent e){
+    public void openFileChooser() {
         DirectoryChooser dirChooser = new DirectoryChooser();
 
         dirChooser.setTitle("Selectionner un dossier");
@@ -105,55 +106,31 @@ public class Controller implements Initializable {
 
 
     @FXML
-    public void start() throws IOException {
+    public void start() {
         System.out.println("Start");
         if(this.getDirPath() == null || this.fileName.getText().isEmpty()){
             System.out.println("Aucun chemin specifié ou aucun nom de fichier");
             Alert alert = ComponentCustomized.getDialogBox(Alert.AlertType.WARNING, "Choisissez un dossier ou entrez un nom pour la liste");
             alert.show();
         } else {
+
             this.showLoader();
 
-            if (t == 0) {
-                ServiceLoader.setDir(this.dirPath);
-                ServiceLoader.setListName(this.fileName.getText());
-                ServiceLoader.setSize(cbSize.isSelected());
-                ServiceLoader.setDate(cbDate.isSelected());
-                serviceLoader = ServiceLoader.getService();
+            tache = new TacheLoaderClone();
+            tache.setDir(this.dirPath);
+            tache.setListName(this.fileName.getText());
+            tache.setSize(cbSize.isSelected());
+            tache.setDate(cbDate.isSelected());
+            tache.setOnSucceeded(e -> {
+                System.out.println(Thread.currentThread());
+                System.out.println("Tache accomplie avec success");
+                this.stackPane.getChildren().remove(1);
+                System.out.println("Loader fin");
+                this.makeListView();
+            });
 
-                serviceLoader.start();
-            } else {
-                ServiceLoader.setDir(this.dirPath);
-                ServiceLoader.setListName(this.fileName.getText());
-                ServiceLoader.setSize(cbSize.isSelected());
-                ServiceLoader.setDate(cbDate.isSelected());
-
-                serviceLoader.restart();
-            }
-            t++;
-//            Instant debut = Instant.now();
-//
-//            DirToFile dirToFile = new DirToFile(this.dirPath, cbSize.isSelected(), cbDate.isSelected());
-//            Path listFile = dirToFile.toFile();
-//
-//            FileToColl fileToColl = new FileToColl(listFile);
-//            SortedSet itemsColl = fileToColl.toColl();
-//
-//            CollToFIle collToFIle = new CollToFIle(this.fileName.getText() + ".txt", itemsColl, fileToColl.getDirectoryListName());
-//            collToFIle.toFile();
-//
-//            System.out.println("Suppression du fichier oldList.txt");
-//            Files.deleteIfExists(Paths.get("oldList.txt"));
-//
-//            Instant fin = Instant.now();
-//            Duration duree = Duration.between(debut, fin);
-//            System.out.println(" Le traitement a duré : " + duree.getSeconds() + " seconde(s)");
-
-
-            this.stackPane.getChildren().remove(1);
-            System.out.println("Loader fin");
-
-            this.makeListView();
+            ExecutorService exeService = Executors.newSingleThreadExecutor();
+            exeService.submit(tache);
         }
     }
 
@@ -172,11 +149,9 @@ public class Controller implements Initializable {
         if (browserRules.getSortedList().isEmpty()) {
             return null;
         } else {
-//            System.out.println(browserRules.getSortedList());
             return browserRules.getSortedList();
         }
     }
-
 
     public void makeListView() {
         if (this.findAvailableList() == null) {
